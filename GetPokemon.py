@@ -1,6 +1,7 @@
 # get list of pokemon
 import pokebase as pb
 ## Global variables
+DEBUG = True
 valid_games =  ["red", "blue1", "leafgreen1", "white1"]
 def create_dict_entry(id, name, base_experience, height, weight, bmi, order):
     # arguments:
@@ -20,7 +21,7 @@ def get_pokemon_data(valid_games):
     #       ...
     #---------------------
     # Get all the pokemons
-    all_pokemons = pb.APIResource('pokemon','')
+    all_pokemons = (pb.APIResource('pokemon','')).results
     all_pokemons = all_pokemons.results
     for pokemon in all_pokemons:
         # determine if pokemon played in our valid game set
@@ -38,7 +39,8 @@ def get_pokemon_data(valid_games):
             slots = [x.type.name for x in pokemon.types] # assume first entry is always slot 1
             slot1 = slots[0]
             slot2 = slots[1] if len(slots)==2 else ''
-            print("Id {}, Name {}, Base Experience {}, Heigh {}, Weight {}, BMI {:0.1f}, Order {}, Slot1 {}, Slot2".format(id, name, base_experience, height, weight, bmi, order, slot1, slot2))
+            if DEBUG:
+                print("Id {}, Name {}, Base Experience {}, Heigh {}, Weight {}, BMI {:0.1f}, Order {}, Slot1 {}, Slot2".format(id, name, base_experience, height, weight, bmi, order, slot1, slot2))
         else:
             print("Skipping {}".format(pokemon.id))
 
