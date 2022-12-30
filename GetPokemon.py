@@ -25,6 +25,7 @@ def get_pokemon_data(valid_games):
     for pokemon in all_pokemons:
         # determine if pokemon played in our valid game set
         result = []
+        
         games = [x.version.name for x in pokemon.game_indices] 
         if any(item in games for item in  ["red", "blue", "leafgreen", "white"]):
             id = pokemon.id
@@ -34,7 +35,10 @@ def get_pokemon_data(valid_games):
             bmi = weight/(height**2) 
             order = pokemon.order
             base_experience = pokemon.base_experience
-            print("Id {}, Name {}, Base Experience {}, Heigh {}, Weight {}, BMI {:0.1f}, Order {}".format(id, name, base_experience, height, weight, bmi, order))
+            slots = [x.type.name for x in pokemon.types] # assume first entry is always slot 1
+            slot1 = slots[0]
+            slot2 = slots[1] if len(slots)==2 else ''
+            print("Id {}, Name {}, Base Experience {}, Heigh {}, Weight {}, BMI {:0.1f}, Order {}, Slot1 {}, Slot2".format(id, name, base_experience, height, weight, bmi, order, slot1, slot2))
         else:
             print("Skipping {}".format(pokemon.id))
 
