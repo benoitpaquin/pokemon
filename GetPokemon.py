@@ -79,7 +79,7 @@ def get_pokemon_data(valid_games):
             list_of_dict.append(create_dict_entry(id, name, base_experience, height, weight, bmi, order, slot1, slot2, sprite))
         else:
             if DEBUG: print("Skipping {}".format(pokemon.id))
-    return result
+    return list_of_dict
 
 def write_to_csv(list_of_dict, file_name):
 # Write a csv formatted file  
