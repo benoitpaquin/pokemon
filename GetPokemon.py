@@ -1,15 +1,34 @@
 # get list of pokemon
 import pokebase as pb
+import json
+import csv
+
 ## Global variables
 DEBUG = True
-valid_games =  ["red", "blue1", "leafgreen1", "white1"]
-def create_dict_entry(id, name, base_experience, height, weight, bmi, order):
+valid_games = ["red", "blue", "leafgreen", "white"]
+csv_file = 'pokemon.csv'
+json_file = 'pokemon.json'
+
+
+def create_dict_entry(id, name, base_experience, height, weight, bmi, order, slot1, slot2, sprite):
     # arguments:
     # all of the pokemon data that needs to be put in dictionary
-    # result: 
+    # result:
     # a dictionary
-    #---------
-    return {'id':id, "name": name, "base_experience" : base_experience, "height": height, "weight":weight, "bmi": bmi, "order":order}
+    # ---------
+    return {
+        "id": id,
+        "name": name,
+        "base_experience": base_experience,
+        "height": height,
+        "weight": weight,
+        "bmi": bmi,
+        "order": order,
+        "slot1": slot1,
+        "slot2": slot2,
+        "sprite": sprite
+    }
+
 
 def get_pokemon_data(valid_games):
     # arguments:
@@ -19,57 +38,70 @@ def get_pokemon_data(valid_games):
     #       id: the id of the pokemon
     #       name: The name of the pokemon with the first letter capitalized
     #       ...
-    #---------------------
+    # ---------------------
     # Get all the pokemons
-    all_pokemons = (pb.APIResource('pokemon','')).results
-    all_pokemons = all_pokemons.results
+    all_pokemons = (pb.APIResource("pokemon", "")).results
+    #if DEBUG: all_pokemons = all_pokemons[:3]
+    result = []
     for pokemon in all_pokemons:
         # determine if pokemon played in our valid game set
-        result = []
-        
-        games = [x.version.name for x in pokemon.game_indices] 
-        if any(item in games for item in  ["red", "blue", "leafgreen", "white"]):
+
+
+        games = [x.version.name for x in pokemon.game_indices]
+        if any(item in games for item in valid_games):
             id = pokemon.id
             name = pokemon.name.capitalize()
-            height = pokemon.height/10 # in meters
-            weight = pokemon.weight/10 # in kilos
-            bmi = weight/(height**2) 
+            height = pokemon.height / 10  # in meters
+            weight = pokemon.weight / 10  # in kilos
+            bmi = weight / (height**2)
             order = pokemon.order
             base_experience = pokemon.base_experience
-            slots = [x.type.name for x in pokemon.types] # assume first entry is always slot 1
+            slots = [
+                x.type.name for x in pokemon.types
+            ]  # assume first entry is always slot 1
             slot1 = slots[0]
-            slot2 = slots[1] if len(slots)==2 else ''
+            slot2 = slots[1] if len(slots) == 2 else ""
+            sprite = pokemon.sprites.front_default
+            print("---")
+            print(sprite)
             if DEBUG:
-                print("Id {}, Name {}, Base Experience {}, Heigh {}, Weight {}, BMI {:0.1f}, Order {}, Slot1 {}, Slot2".format(id, name, base_experience, height, weight, bmi, order, slot1, slot2))
+                print(
+                    "Id {}, Name {}, Base Experience {}, Heigh {}, Weight {}, BMI {:0.1f}, Order {}, Slot1 {}, Slot2 {}, Sprite URL {}".format(
+                        id,
+                        name,
+                        base_experience,
+                        height,
+                        weight,
+                        bmi,
+                        order,
+                        slot1,
+                        slot2,
+                        sprite
+                    )
+                )
+            result.append(create_dict_entry(id, name, base_experience, height, weight, bmi, order, slot1, slot2, sprite))
         else:
-            print("Skipping {}".format(pokemon.id))
+            if DEBUG: print("Skipping {}".format(pokemon.id))
+    return result
+def write_to_csv(list_of_dict):
 
-# def get_pokemon_data(id): 
-#     data = pb.pokemon(id)
-#     #get all games the pokemon is member of
-#     games = [x.version.name for x in data.game_indices]
-#     if any(item in games for item in  ["red", "blue1", "leafgreen1", "white1"]):
-#         name = data.name.capitalize()
-#         height = data.height/10 # in meter
-#         weight = data.weight/10 # in kilo
-#         bmi = weight/(height**2)  
-#         print("Id {}, Name {}, Base Experience {}, Heigh {}, Weight {}, BMI {:0.1f}, Order {}".format(id, name, data.base_experience, height, weight, bmi, data.order))
-#     else:
-#         print("not in the right game")
-print("starting")
-get_pokemon_data(valid_games)
-# View Pokemon from this generation number.
-# cnt = 0
-# for gen in list(range(1,9)):
-        
-#     gen_resource = pb.generation(gen)
-#     # Iterate through the list of Pokemon introduced in that generation.
-#     print("generation {}".format (gen))
-#     for pokemon in gen_resource.pokemon_species:
-#         cnt = cnt+1
-#         print('{}: {} {}'.format(pokemon.id_,pokemon.name.title(),cnt))
-#     #    get_pokemon_data(pokemon.id_)
+    file = open(csv_file, 'w')
+    writer = csv.DictWriter(file, fieldnames=["id", "name", "base_experience", "height", "weight", "bmi", "order", "slot1", "slot2", "sprite"])
+    writer.writeheader()
+    writer.writerows(list_of_dict)
+    file.close()
 
-#a=pb.APIResourceList('pokemon')
-#for x in a:
-#    a.name
+def write_to_json(list_of_dict):
+
+    file = open(json_file, 'w')
+    json.dump(list_of_dict,file)
+    file.close()
+# start of program
+if DEBUG: print("starting")
+list_of_dict = get_pokemon_data(valid_games)
+write_to_csv(list_of_dict)
+write_to_json(list_of_dict)
+
+print(json.dumps(list_of_dict, indent=2))
+if DEBUG: print("Found {} pokemons in {} games".format(len(list_of_dict),", ".join(valid_games)))
+
